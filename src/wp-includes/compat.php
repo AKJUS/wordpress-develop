@@ -2,6 +2,11 @@
 /**
  * WordPress implementation for PHP functions either missing from older PHP versions or not included by default.
  *
+ * This file is loaded extremely early and the functions can be relied upon by drop-ins.
+ * Ergo, please ensure you do not rely on external functions when writing code for this file.
+ * Only use functions built into PHP or are defined in this file and have adequate testing
+ * and error suppression to ensure the file will run correctly and not break websites.
+ *
  * @package PHP
  * @access private
  */
@@ -38,6 +43,43 @@ function _wp_can_use_pcre_u( $set = null ) {
 	}
 
 	return $utf8_pcre;
+}
+
+/**
+ * Indicates if a given slug for a character set represents the UTF-8 text encoding.
+ *
+ * A charset is considered to represent UTF-8 if it is a case-insensitive match
+ * of "UTF-8" with or without the hyphen.
+ *
+ * Example:
+ *
+ *     true  === _is_utf8_charset( 'UTF-8' );
+ *     true  === _is_utf8_charset( 'utf8' );
+ *     false === _is_utf8_charset( 'latin1' );
+ *     false === _is_utf8_charset( 'UTF 8' );
+ *
+ *     // Only strings match.
+ *     false === _is_utf8_charset( [ 'charset' => 'utf-8' ] );
+ *
+ * `is_utf8_charset` should be used outside of this file.
+ *
+ * @ignore
+ * @since 6.6.1
+ *
+ * @param string $charset_slug Slug representing a text character encoding, or "charset".
+ *                             E.g. "UTF-8", "Windows-1252", "ISO-8859-1", "SJIS".
+ *
+ * @return bool Whether the slug represents the UTF-8 encoding.
+ */
+function _is_utf8_charset( $charset_slug ) {
+	if ( ! is_string( $charset_slug ) ) {
+		return false;
+	}
+
+	return (
+		0 === strcasecmp( 'UTF-8', $charset_slug ) ||
+		0 === strcasecmp( 'UTF8', $charset_slug )
+	);
 }
 
 if ( ! function_exists( 'mb_substr' ) ) :
@@ -91,7 +133,7 @@ function _mb_substr( $str, $start, $length = null, $encoding = null ) {
 	 * The solution below works only for UTF-8, so in case of a different
 	 * charset just use built-in substr().
 	 */
-	if ( ! is_utf8_charset( $encoding ) ) {
+	if ( ! _is_utf8_charset( $encoding ) ) {
 		return is_null( $length ) ? substr( $str, $start ) : substr( $str, $start, $length );
 	}
 
@@ -176,7 +218,7 @@ function _mb_strlen( $str, $encoding = null ) {
 	 * The solution below works only for UTF-8, so in case of a different charset
 	 * just use built-in strlen().
 	 */
-	if ( ! is_utf8_charset( $encoding ) ) {
+	if ( ! _is_utf8_charset( $encoding ) ) {
 		return strlen( $str );
 	}
 
@@ -373,6 +415,10 @@ if ( ! function_exists( 'array_key_first' ) ) {
 	 *                         is not empty; `null` otherwise.
 	 */
 	function array_key_first( array $array ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+		if ( empty( $array ) ) {
+			return null;
+		}
+
 		foreach ( $array as $key => $value ) {
 			return $key;
 		}
@@ -503,6 +549,98 @@ if ( ! function_exists( 'str_ends_with' ) ) {
 	}
 }
 
+if ( ! function_exists( 'array_find' ) ) {
+	/**
+	 * Polyfill for `array_find()` function added in PHP 8.4.
+	 *
+	 * Searches an array for the first element that passes a given callback.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array    $array    The array to search.
+	 * @param callable $callback The callback to run for each element.
+	 * @return mixed|null The first element in the array that passes the `$callback`, otherwise null.
+	 */
+	function array_find( array $array, callable $callback ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+		foreach ( $array as $key => $value ) {
+			if ( $callback( $value, $key ) ) {
+				return $value;
+			}
+		}
+
+		return null;
+	}
+}
+
+if ( ! function_exists( 'array_find_key' ) ) {
+	/**
+	 * Polyfill for `array_find_key()` function added in PHP 8.4.
+	 *
+	 * Searches an array for the first key that passes a given callback.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array    $array    The array to search.
+	 * @param callable $callback The callback to run for each element.
+	 * @return int|string|null The first key in the array that passes the `$callback`, otherwise null.
+	 */
+	function array_find_key( array $array, callable $callback ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+		foreach ( $array as $key => $value ) {
+			if ( $callback( $value, $key ) ) {
+				return $key;
+			}
+		}
+
+		return null;
+	}
+}
+
+if ( ! function_exists( 'array_any' ) ) {
+	/**
+	 * Polyfill for `array_any()` function added in PHP 8.4.
+	 *
+	 * Checks if any element of an array passes a given callback.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array    $array    The array to check.
+	 * @param callable $callback The callback to run for each element.
+	 * @return bool True if any element in the array passes the `$callback`, otherwise false.
+	 */
+	function array_any( array $array, callable $callback ): bool { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+		foreach ( $array as $key => $value ) {
+			if ( $callback( $value, $key ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+}
+
+if ( ! function_exists( 'array_all' ) ) {
+	/**
+	 * Polyfill for `array_all()` function added in PHP 8.4.
+	 *
+	 * Checks if all elements of an array pass a given callback.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array    $array    The array to check.
+	 * @param callable $callback The callback to run for each element.
+	 * @return bool True if all elements in the array pass the `$callback`, otherwise false.
+	 */
+	function array_all( array $array, callable $callback ): bool { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+		foreach ( $array as $key => $value ) {
+			if ( ! $callback( $value, $key ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+}
+
 // IMAGETYPE_AVIF constant is only defined in PHP 8.x or later.
 if ( ! defined( 'IMAGETYPE_AVIF' ) ) {
 	define( 'IMAGETYPE_AVIF', 19 );
@@ -511,4 +649,9 @@ if ( ! defined( 'IMAGETYPE_AVIF' ) ) {
 // IMG_AVIF constant is only defined in PHP 8.x or later.
 if ( ! defined( 'IMG_AVIF' ) ) {
 	define( 'IMG_AVIF', IMAGETYPE_AVIF );
+}
+
+// IMAGETYPE_HEIC constant is not yet defined in PHP as of PHP 8.3.
+if ( ! defined( 'IMAGETYPE_HEIC' ) ) {
+	define( 'IMAGETYPE_HEIC', 99 );
 }
