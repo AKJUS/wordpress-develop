@@ -30,9 +30,9 @@
 		"@wordpress/babel-preset-default": "8.0.1",
 		"@wordpress/dependency-extraction-webpack-plugin": "6.0.2",
 		"@wordpress/e2e-test-utils": "11.0.1",
-		"@wordpress/e2e-test-utils-playwright": "1.0.1",
+		"@wordpress/e2e-test-utils-playwright": "1.41.0",
 		"@wordpress/prettier-config": "4.0.1",
-		"@wordpress/scripts": "28.0.2",
+		"@wordpress/scripts": "31.6.0",
 		"autoprefixer": "10.4.19",
 		"chalk": "5.3.0",
 		"check-node-version": "4.2.1",
@@ -74,7 +74,7 @@
 		"uglify-js": "^3.17.4",
 		"uuid": "9.0.1",
 		"wait-on": "7.2.0",
-		"webpack": "5.90.2",
+		"webpack": "5.105.4",
 		"webpack-livereload-plugin": "3.0.2"
 	},
 	"dependencies": {
@@ -157,7 +157,7 @@
 		"jquery-form": "4.3.0",
 		"jquery-hoverintent": "1.10.2",
 		"json2php": "^0.0.7",
-		"lodash": "4.17.21",
+		"lodash": "4.17.23",
 		"masonry-layout": "4.2.2",
 		"moment": "2.29.4",
 		"objectFitPolyfill": "2.3.5",
@@ -166,7 +166,7 @@
 		"react-dom": "18.3.1",
 		"react-is": "18.3.1",
 		"regenerator-runtime": "0.14.0",
-		"underscore": "1.13.6",
+		"underscore": "1.13.8",
 		"whatwg-fetch": "3.6.17",
 		"wicg-inert": "3.1.2"
 	},
